@@ -1,1 +1,243 @@
-ffffffffffffffffffffffffff
+#  Git 基础
+
+## git 配置信息 
+### 用户全局配置信息
+windows 下操作 git ， 打开 Git Bash 。 采用 global 表示是当前用户下的 git 全局配置
+
+```d
+git config --global user.name "ouyangjie"           #用户名
+git config --global user.email "348440545@qq.com"   #用户邮箱
+
+#配置别名
+git config --global alias.st   status
+git config --global alias.co   checkout
+git config --global alias.ci   commit
+git config --global alias.br   branch
+git config --global alias.uns  'reset HEAD'
+git config --global alias.lg   "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+```
+### 当前仓库配置信息
+不加 global 表示当前仓库的配置
+
+
+## git 配置文件位置
+### git 全局配置文件
+在当前用户的主目录下，如 Linux 的 home 目录下， windows 的 C:\Users\Administrator 下的 .gitconfig 。
+
+该文件包含客户端界面的编码，提交的编码，用户信息，别名 等信息
+```
+[gui]
+	recentrepo = E:/github/test
+	encoding = utf-8
+[core]
+	quotepath = false
+[i18n "commit"]
+	encoding = utf-8
+[i18n]
+	logoutputencoding = utf-8
+[user]
+	name = ouyangjie
+	email = 348440545@qq.com
+[alias]
+	st = status
+	co = checkout
+	ci = commit
+	br = branch
+	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+
+```
+
+### git 某个仓库配置文件
+文件是仓库目录下的 .git/config
+
+## 创建版本库 
+### 用命令在本地创建版本库
+创建版本库(仓库) repository ，在 Git Bash 下。cd到纯英文的目录，创建了目录，再init，这样，这个目录就是仓库。
+
+```d
+cd /d/Github
+mkdir learngit
+git init         #这样，上面的learngit目录就是仓库（目录名称可以简单理解为仓库名称）
+```
+
+### 把文件添加到版本库 
+如果没有**历史遗留问题**，文件用UTF-8编码
+```d
+git add 文件           #文件可以 . ,文件1 文件2 ...
+git commit -m "注释"   #一次性提交暂存区所有文件 只提交暂存区的,不交接工作区的
+```
+
+## 查看仓库当前状态 及 文件对比(3种状态对比)
+### 查看仓库当前状态 
+`git status` 状态包括新文件未添加、未 add 、未 commit 等。会提示几种可以操作的命令
+```
+#新的文件未 add
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+  
+#文件未 add (此文件已经有在版本库)
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+#文件未 commit   
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)  #回到 add 之前(如果add 之后，工作区又有修改，然后执行该命令，会怎么样？)
+```
+### 文件对比
+```d       
+git diff 文件名             # "工作区与暂存区"  如果暂存区已经提交到版本库，则该比较跟  "工作区与版本库" 一样
+git diff HEAD  文件名       # "工作区与版本库"   
+git diff --cached 文件名    # "暂存区与版本库" 
+```
+
+## 版本日志 及 版本回退
+### 日志
+- `git log` 能够得到历史提交ID 及注释等信息  **看不到回退版本号之后的版本记录**，即是查看`当前及之前版本`的历史记录
+```d
+git log                   #是查看当前版本及之前版本的历史记录
+git log --pretty=oneline
+git log 文件名
+```
+- `reflog` 能够查到**完整的**提交ID 及注释
+
+### 版本回退 reset
+- 版本的表示：`哈希号`: 某个版本, `HEAD` :当前版本 ,`HEAD^` :上个版本,`HEAD^^` :上上个版本 ,`HEAD~100` :上100个版本
+- 版本回退 
+
+> ***加上--hard参数，才可以只是穿梭于版本库，而不改动到库***
+
+> **回退之前需 提交才不会丢失修改**  
+
+```d
+git reset --hard HEAD^   #回退到上个版本
+git reset --hard 版本号  #回退到某个版本
+```
+
+**注意**，与 `git reset HEAD 文件名` 的区别。(这个命令后，暂存区干净，工作区有修改,回到工作区的状态)
+
+## 撤销工作区修改 
+- 写法: `git checkout --(空格) 文件名`
+- 作用: 把`工作区`的修改撤销，回到最近一次的 git commit 或者 git add
+
+### 回到 git commit
+工作区修改后, 执行 checkout -- ,回到最近一次的 commit 
+
+### 回到 git add
+暂存区修改后,执行 checkout -- ，回到最近的一次 add .
+
+
+## 删除文件
+1. 创建文件并放入版本库
+2. 删除文件 并提交到暂存区 ，有两种方法：
+- 直接执行 git rm 文件名，表示删除并提交到暂存区
+- (1)本地删除 rm 文件名 , (2) git add 文件  或者 git rm 文件
+3. 有两种情况，一种是真的想删除，从版本库中删除 ，一种的不想删除，所以要恢复
+- 恢复 git reset HEAD 文件名，git checkout -- 文件名
+- 从版本库删除 commit
+
+
+
+
+# 远程仓库
+## 创建私钥 与 公钥  
+- 命令: ssh-keygen -t rsa -C "348440545@qq.com"
+- 生成的`私钥`与`公钥`位置 ： 主目录下的 `.shh` 目录
+- 把 公钥 内容粘贴到 github 的设置里面的 SSH keys
+
+```
+$ ssh-keygen -t rsa -C "348440545@qq.com"
+Generating public/private rsa key pair.
+Enter file in which to save the key (/c/Users/Administrator/.ssh/id_rsa):
+Created directory '/c/Users/Administrator/.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /c/Users/Administrator/.ssh/id_rsa.
+Your public key has been saved in /c/Users/Administrator/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:vOVXAVHdX9U5DYTA9FCpVlMb/guatR43AqkWBPHE3Z0 348440545@qq.com
+The key's randomart image is:
++---[RSA 2048]----+
+|       oo+=o=BBoO|
+|        +..+=+ E*|
+|         o o..+ +|
+|       .. o .  o.|
+|        So.o o. .|
+|         +o =.o .|
+|        .o.o.+ + |
+|        .  .. + .|
+|             .   |
++----[SHA256]-----+
+
+```
+
+## 先有本地库，后有远程库，两者关联
+1. 本地库 (本地库实际就是 `.git` 目录所在的目录)
+2. 在 github 建立库 ` github.com:ouyangjie8/localGitTest.git `
+3. 把本地库与远程库关联(**在本地库所在的目录执行**)
+```
+git remote add origin git@github.com:ouyangjie8/localGitTest.git
+```
+> 上面信息: `origin` 是远程库的名称(别名) , @后面是 远程库的地址
+
+> 添加后，在 仓库目录下的 .git/config文件，多了下面的远程库信息
+
+```
+[remote "origin"]
+	url = git@github.com:ouyangjie8/localGitTest.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+```
+4. 把本地库推送到远程库
+- 第一次推送
+
+```
+$ git push -u origin master
+Warning: Permanently added the RSA host key for IP address '13.250.177.223' to the list of known hosts.
+Counting objects: 18, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (7/7), done.
+Writing objects: 100% (18/18), 1.44 KiB | 738.00 KiB/s, done.
+Total 18 (delta 0), reused 0 (delta 0)
+To github.com:ouyangjie8/localGitTest.git
+ * [new branch]      master -> master
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+
+```
+
+- 以后的推送 `git push origin master`
+
+
+
+
+# git 用词中英文对照表
+
+
+# git 帮助文档
+
+# git 客户端配置
+
+
+## git 在windows乱码配置
+在Linux以及托管网站，采用UTF-8, 在windows不是。
+
+### 通过命令设置
+```
+git config --global core.quotepath false          # 显示 status 编码
+git config --global gui.encoding utf-8            # 图形界面编码
+git config --global i18n.commit.encoding utf-8    # 提交信息编码
+git config --global i18n.logoutputencoding utf-8  # 输出 log 编码
+export LESSCHARSET=utf-8 # 因为 git log 默认使用 less 分页，所以需要 bash 对 less 命令进行 utf-8 编码
+```
+### 配置文件直接设置
+在 用户目录下的 .gitconfig  
+```
+[gui]
+	encoding = utf-8
+[core]
+	quotepath = false
+[i18n "commit"]
+	encoding = utf-8
+[i18n]
+	logoutputencoding = utf-8
+```
+
